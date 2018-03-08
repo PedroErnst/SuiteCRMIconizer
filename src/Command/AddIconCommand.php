@@ -2,6 +2,9 @@
 
 namespace Iconizer\Command;
 
+use Iconizer\Config;
+use Iconizer\Conversion\Conversion;
+use Iconizer\Conversion\ConversionFactory;
 use Iconizer\Verification\FileChecker;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,6 +18,15 @@ class AddIconCommand extends Command
      * @var string
      */
     private $fileChecker;
+
+    /**
+     * @var array
+     */
+    private $conversions;
+
+    private $fileName;
+
+    private $iconName;
 
     /**
      * AddIconCommand constructor.
@@ -45,7 +57,17 @@ class AddIconCommand extends Command
                 'This command allows you to add a new icon to the library. ' .
                 'The icon to be added should be placed in the images/png folder. ' .
                 'It should be in .png format and measure 30x30, with transparent background and the icon in grey'
-            );
+            )
+            ->setConversions();
+    }
+
+    private function setConversions()
+    {
+        $this->conversions = [
+            '/images/library/{$name}/{$name}.png' => ['Copy'],
+        ];
+
+        return $this;
     }
 
     /**
@@ -55,29 +77,46 @@ class AddIconCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->iconName = $input->getArgument('name');
+        $this->fileName = $this->iconName . '.png';
+        $force = $input->getOption('force');
+
         $output->writeln('Attempting to add an icon: ');
 
-        if (!$this->checkFile($input, $output)) {
+        try {
+            $this->fileChecker->check($this->fileName, $force);
+        } catch (\Exception $e) {
+            $output->writeln('--- ERROR: ' . $e->getMessage());
             return;
         }
 
-        // do stuff
+        try {
+            $this->performConversions($this->fileName);
+        } catch (\Exception $e) {
+            $output->writeln($e->getMessage());
+            return;
+        }
+
+        $output->writeln($this->iconName . ' added successfully!');
     }
 
     /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return bool
+     * @param $fileName
+     * @throws \Exception
      */
-    private function checkFile(InputInterface $input, OutputInterface $output)
+    private function performConversions($fileName)
     {
-        if ($this->fileChecker->check($input)) {
-            $output->writeln($input->getArgument('name'));
-            return true;
+        foreach ($this->conversions as $targetDir => $steps) {
+            $path = Config::getVar('base_dir') . '/images/png/' . $fileName;
+
+            $directoryPath = Config::getVar('base_dir') . str_replace('{$name}', $this->iconName, $targetDir);
+            foreach ($steps as $step) {
+
+                /** @var Conversion $conversion */
+
+                $conversion = ConversionFactory::getConversion($step, $path, $directoryPath);
+                $path = $conversion->convert();
+            }
         }
-
-        $output->writeln('--- ERROR: ' . $this->fileChecker->lastError());
-
-        return true;
     }
 }

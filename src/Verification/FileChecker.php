@@ -57,7 +57,7 @@ class FileChecker
     private $error = false;
 
     /**
-     * @var bool
+     * @var Filesystem
      */
     private $fileSystem;
 
@@ -91,23 +91,17 @@ class FileChecker
 
     /**
      * @param string $fileName
-     * @return bool
+     * @param bool $force
+     * @throws \Exception
      */
-    public function check(InputInterface $input)
+    public function check($fileName, $force)
     {
-        $this->fileName = $input->getArgument('name');
-        $this->force = $input->getOption('force');
+        $this->fileName =$fileName;
+        $this->force = $force;
         $this->fullPath = Config::getVar('base_dir') . '/images/png/' . $this->fileName;
         $this->targetDirectory = Config::getVar('base_dir') . '/images/library';
 
-        try {
-            $this->runChecks();
-        } catch (\Exception $e) {
-            $this->error = $e->getMessage();
-            return false;
-        }
-
-        return true;
+        $this->runChecks();
     }
 
     /**
@@ -151,8 +145,8 @@ class FileChecker
             return;
         }
 
-        $targetFolder = $this->targetDirectory . '/' . pathinfo('filename.md.txt', PATHINFO_FILENAME);
-        if (!$this->fileSystem->exists($targetFolder)) {
+        $targetFolder = $this->targetDirectory . '/' . pathinfo($this->fileName, PATHINFO_FILENAME);
+        if ($this->fileSystem->exists($targetFolder)) {
             throw new \Exception("An icon with the same name already exists. Use -f to overwrite.");
         }
     }
