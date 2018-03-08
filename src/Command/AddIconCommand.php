@@ -55,9 +55,13 @@ class AddIconCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $output->writeln('Attempting to add an icon: ');
+
         if (!$this->checkFile($input, $output)) {
             return;
         }
+
+        // do stuff
     }
 
     /**
@@ -67,11 +71,9 @@ class AddIconCommand extends Command
      */
     private function checkFile(InputInterface $input, OutputInterface $output)
     {
-        $output->writeln('Attempting to add an icon: ');
-
         if ($this->fileChecker->check($input)) {
             $output->writeln($input->getArgument('name'));
-            return false;
+            return true;
         }
 
         $output->writeln('--- ERROR: ' . $this->fileChecker->lastError());
