@@ -1,0 +1,53 @@
+<?php
+
+namespace Iconizer\Command;
+
+use Iconizer\Verification\FileChecker;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Input\InputArgument;
+
+class AddIconCommand extends Command
+{
+    /**
+     * @var string
+     */
+    private $fileChecker;
+    
+    public function __construct($name = null)
+    {
+        $this->fileChecker = new FileChecker();
+        parent::__construct($name);
+    }
+
+    protected function configure()
+    {
+        $this
+            ->setName('add-icon')
+            ->setDescription('Adds a new icon to the library.')
+            ->addArgument('name', InputArgument::REQUIRED, 'The name of the icon and file.')
+            ->setHelp(
+                'This command allows you to add a new icon to the library. ' .
+                'The icon to be added should be placed in the images/png folder. ' .
+                'It should be in .png format and measure 30x30, with transparent background and the icon in grey'
+            );
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        if ($this->checkFile($input, $output));
+    }
+
+    private function checkFile(InputInterface $input, OutputInterface $output)
+    {
+        $output->writeln('Attempting to add an icon: ');
+
+        if ($this->fileChecker->check($input->getArgument('name'))) {
+            $output->writeln( $input->getArgument('name'));
+            return;
+        }
+
+        $output->writeln('--- ERROR: ' . $this->fileChecker->lastError());
+    }
+}
