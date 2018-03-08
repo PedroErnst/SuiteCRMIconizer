@@ -40,7 +40,10 @@
 
 namespace Iconizer\Verification;
 
-use PHPUnit\Runner\Exception;
+use Iconizer\Config;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Filesystem\Filesystem;
+
 
 /**
  * Class FileChecker
@@ -54,25 +57,48 @@ class FileChecker
     private $error = false;
 
     /**
+     * @var bool
+     */
+    private $fileSystem;
+
+    /**
      * @var
      */
     private $fileName;
+
+    /**
+     * @var
+     */
+    private $force;
+
+    /**
+     * @var
+     */
+    private $fullPath;
+
+    /**
+     * @var
+     */
+    private $targetDirectory;
 
     /**
      * FileChecker constructor.
      */
     public function __construct()
     {
-        //
+        $this->fileSystem = new Filesystem();
     }
 
     /**
      * @param string $fileName
      * @return bool
      */
-    public function check(string $fileName)
+    public function check(InputInterface $input)
     {
-        $this->fileName = $fileName;
+        $this->fileName = $input->getArgument('name');
+        $this->force = $input->getOption('force');
+        $this->fullPath = Config::getVar('base_dir') . '/images/png/' . $this->fileName;
+        $this->targetDirectory = Config::getVar('base_dir') . '/images/library';
 
         try {
             $this->runChecks();
@@ -90,6 +116,45 @@ class FileChecker
     private function runChecks()
     {
         $this->checkFileName();
+        $this->checkFileExists();
+        $this->checkLibraryFolderIsWritable();
+        $this->checkTargetFolderDoesNotExist();
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function checkFileExists()
+    {
+
+        if (!$this->fileSystem->exists($this->fullPath)) {
+            throw new \Exception("File doesn't exist: " . $this->fullPath);
+        }
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function checkLibraryFolderIsWritable()
+    {
+        if (!is_writable($this->targetDirectory)) {
+            throw new \Exception("Library folder is not writable: " . $this->targetDirectory);
+        }
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function checkTargetFolderDoesNotExist()
+    {
+        if ($this->force) {
+            return;
+        }
+
+        $targetFolder = $this->targetDirectory . '/' . pathinfo('filename.md.txt', PATHINFO_FILENAME);
+        if (!$this->fileSystem->exists($targetFolder)) {
+            throw new \Exception("An icon with the same name already exists. Use -f to overwrite.");
+        }
     }
 
     /**

@@ -3,10 +3,7 @@
 namespace Iconizer;
 
 use Iconizer\Command\AddIconCommand;
-use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Application;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 
 
 class Iconizer extends Application
@@ -16,5 +13,6 @@ class Iconizer extends Application
     {
         parent::__construct();
         $this->add(new AddIconCommand());
+        Config::setVar('base_dir', dirname(__DIR__));
     }
 }
