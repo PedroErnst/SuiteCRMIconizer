@@ -51,6 +51,11 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class FileChecker
 {
+    private const VALID_EXTENSIONS = [
+        '.gif',
+        '.png',
+    ];
+
     /**
      * @var bool
      */
@@ -96,9 +101,9 @@ class FileChecker
      */
     public function check($fileName, $force)
     {
-        $this->fileName =$fileName;
+        $this->fileName = $fileName;
         $this->force = $force;
-        $this->fullPath = Config::getVar('base_dir') . '/images/png/' . $this->fileName;
+        $this->fullPath = Config::getVar('base_dir') . '/images/input/' . $this->fileName;
         $this->targetDirectory = Config::getVar('base_dir') . '/images/library';
 
         $this->runChecks();
@@ -113,6 +118,16 @@ class FileChecker
         $this->checkFileExists();
         $this->checkLibraryFolderIsWritable();
         $this->checkTargetFolderDoesNotExist();
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function checkFileName()
+    {
+        if (!in_array(substr($this->fileName, -4), FileChecker::VALID_EXTENSIONS)) {
+            throw new \Exception('File type must be one of ' . implode(' ', FileChecker::VALID_EXTENSIONS));
+        }
     }
 
     /**
@@ -148,16 +163,6 @@ class FileChecker
         $targetFolder = $this->targetDirectory . '/' . pathinfo($this->fileName, PATHINFO_FILENAME);
         if ($this->fileSystem->exists($targetFolder)) {
             throw new \Exception("An icon with the same name already exists. Use -f to overwrite.");
-        }
-    }
-
-    /**
-     * @throws \Exception
-     */
-    private function checkFileName()
-    {
-        if (substr($this->fileName, -4) !== '.png') {
-            throw new \Exception('File type must be .png!');
         }
     }
 
