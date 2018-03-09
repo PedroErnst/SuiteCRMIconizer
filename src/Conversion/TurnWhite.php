@@ -40,12 +40,34 @@
 
 namespace Iconizer\Conversion;
 
-class PngToGif extends Conversion
+use Iconizer\Config;
+
+class TurnWhite extends Conversion
 {
+    /**
+     * @param \Imagick $image
+     * @return \Imagick
+     * @throws \Exception
+     */
     public function convert(\Imagick $image)
     {
-        $image->setImageFormat("gif");
+        if ($image->getImageHeight() == 20) {
+            $file2 = fopen(Config::getVar('base_dir') . '/images/addon/white20x20.png', 'a+');
+        }
+        else if ($image->getImageHeight() == 30) {
+            $file2 = fopen(Config::getVar('base_dir') . '/images/addon/white30x30.png', 'a+');
+        }
+        else {
+            throw new \Exception('Invalid image size for converting to white');
+        }
 
-        return $image;
+        $image2 = new \Imagick();
+        $image2->readImageFile($file2);
+
+        $image2->setImageVirtualPixelMethod(\Imagick::VIRTUALPIXELMETHOD_TRANSPARENT);
+        $image2->setImageArtifact('compose:args', "1,0,-0.5,0.5");
+        $image2->compositeImage($image, \Imagick::COMPOSITE_DSTIN, 0, 0);
+
+        return $image2;
     }
 }

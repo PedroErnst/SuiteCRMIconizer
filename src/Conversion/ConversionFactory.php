@@ -44,8 +44,6 @@ class ConversionFactory
 {
     /**
      * @param $name
-     * @param $origin
-     * @param $target
      * @return Conversion
      * @throws \Exception
      */
@@ -66,6 +64,9 @@ class ConversionFactory
                 break;
             case 'OverlayCreateSymbol':
                 return new OverlayCreateSymbol();
+                break;
+            case 'TurnWhite':
+                return new TurnWhite();
                 break;
             default:
                 throw new \Exception('Conversion not found: ' . $name);

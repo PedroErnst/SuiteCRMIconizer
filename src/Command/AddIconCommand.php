@@ -95,8 +95,8 @@ class AddIconCommand extends Command
             '/images/library/{$name}/icon_{uc$name}.gif' => ['Copy'],
             '/images/library/{$name}/{$name}.gif' => ['Copy'],
             '/images/library/{$name}/{$name}.svg' => ['Copy', 'GifToSvg'],
-            '/images/library/{$name}/sidebar/modules/{$name}.svg' => ['Copy', 'ResizeTo20x20', 'GifToSvg'],
-            '/images/library/{$name}/sub_panel/{$name}.svg' => ['Copy', 'GifToSvg'],
+            '/images/library/{$name}/sidebar/modules/{$name}.svg' => ['Copy', 'ResizeTo20x20', 'TurnWhite', 'GifToSvg'],
+            '/images/library/{$name}/sub_panel/{$name}.svg' => ['Copy', 'TurnWhite', 'GifToSvg'],
             '/images/library/{$name}/sub_panel/modules/{$name}.svg' => ['Copy', 'GifToSvg'],
         ];
 
@@ -168,22 +168,58 @@ class AddIconCommand extends Command
             $directoryPath = str_replace('{uc$name}', ucfirst($this->iconName), $directoryPath);
 
             foreach ($steps as $step) {
-
                 /** @var Conversion $conversion */
                 $conversion = ConversionFactory::getConversion($step);
                 $image = $conversion->convert($image);
             }
 
             $image->writeImage($directoryPath);
+            $this->fixSvgFile($directoryPath, $image);
 
             $this->output->writeln('Created file: ' . $directoryPath);
         }
     }
 
+    /**
+     * @param $path string
+     * @param $image \Imagick
+     */
+    private function fixSvgFile($path, $image)
+    {
+        if (substr($path, -4) !== '.svg') {
+            return;
+        }
+
+        $brokenDoctype = '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN" ' .
+            '"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">';
+        $fixedDoctype = '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" ' .
+            '"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
+
+        $brokenHeader = '<svg width="' . $image->getImageWidth() . '" height="' . $image->getImageHeight() . '">';
+        $fixedHeader = '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" ' .
+            'xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="' . $image->getImageWidth() . 'px" ' .
+            'height="' . $image->getImageHeight() . 'px" viewBox="0 0 ' . $image->getImageWidth() . ' '
+            . $image->getImageHeight() . '" enable-background="new 0 0 ' . $image->getImageWidth() . ' '
+            . $image->getImageHeight() . '" xml:space="preserve">';
+
+        $fileContents = file_get_contents($path);
+
+        $fileContents = str_replace($brokenDoctype, $fixedDoctype, $fileContents);
+        $fileContents = str_replace($brokenHeader, $fixedHeader, $fileContents);
+
+        file_put_contents($path, $fileContents);
+    }
+
+    /**
+     *
+     */
     private function createDirectories()
     {
         foreach ($this->directories as $directory) {
-            mkdir(Config::getVar('base_dir') . str_replace('{$name}', $this->iconName, $directory));
+            $fullPath = Config::getVar('base_dir') . str_replace('{$name}', $this->iconName, $directory);
+            if (!is_dir($fullPath)) {
+                mkdir($fullPath);
+            }
         }
     }
 
