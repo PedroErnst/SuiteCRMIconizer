@@ -3,22 +3,13 @@
 namespace Iconizer\Command;
 
 use Iconizer\Config;
-use Iconizer\Conversion\Conversion;
-use Iconizer\Conversion\ConversionFactory;
-use Iconizer\Verification\FileChecker;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 
 class UseIconCommand extends Command
 {
-    private const FILES_TO_COPY = [
-        '.gif',
-        '.png',
-    ];
-
     /**
      * @var string
      */
@@ -95,6 +86,9 @@ class UseIconCommand extends Command
         }
     }
 
+    /**
+     * @return bool
+     */
     private function tryToUseIcon()
     {
         if (!is_dir($this->originDir)) {
@@ -112,16 +106,14 @@ class UseIconCommand extends Command
             return false;
         }
 
-        try {
-            $this->copyFiles();
-        } catch (\Exception $e) {
-            $this->output->writeln($e->getMessage());
-            return false;
-        }
+        $this->copyFiles();
 
         return true;
     }
 
+    /**
+     *
+     */
     private function copyFiles()
     {
         foreach (
