@@ -46,36 +46,23 @@ use Symfony\Component\Filesystem\Filesystem;
 class Conversion
 {
     /**
-     * @var string
-     */
-    protected $origin;
-    /**
-     * @var string
-     */
-    protected $destination;
-
-    /**
      * @var Filesystem
      */
     protected $fileSystem;
 
     /**
      * Conversion constructor.
-     * @param string $origin
-     * @param string $destination
      */
-    public function __construct($origin, $destination)
+    public function __construct()
     {
-        $this->origin = $origin;
-        $this->destination = $destination;
         $this->fileSystem = new Filesystem();
     }
 
     /**
-     * @return string
+     * @return \Imagick
      */
-    public function convert()
+    public function convert(\Imagick $image)
     {
-        return $this->origin;
+        return $image;
     }
 }

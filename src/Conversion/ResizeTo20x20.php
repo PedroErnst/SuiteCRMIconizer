@@ -42,17 +42,10 @@ namespace Iconizer\Conversion;
 
 class ResizeTo20x20 extends Conversion
 {
-    public function convert()
+    public function convert(\Imagick $image)
     {
-        $file = fopen($this->origin, 'a+');
-        if ($file) {
-            $image = new \Imagick();
+        $image->resizeImage(20, 20, \Imagick::FILTER_CATROM, 0.9);
 
-            $image->readImageFile($file);
-            $image->resizeImage(20, 20, \Imagick::FILTER_CATROM, 0.9);
-            $image->writeImage($this->destination);
-        }
-
-        return $this->destination;
+        return $image;
     }
 }

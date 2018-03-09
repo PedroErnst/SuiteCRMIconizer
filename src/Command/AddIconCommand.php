@@ -30,6 +30,11 @@ class AddIconCommand extends Command
     private $conversions;
 
     /**
+     * @var array
+     */
+    private $directories;
+
+    /**
      * @var string
      */
     private $fileName;
@@ -84,7 +89,7 @@ class AddIconCommand extends Command
     {
         $this->conversions = [
             '/images/library/{$name}/Create{$name}.gif' => ['Copy', 'OverlayCreateSymbol'],
-            '/images/library/{$name}/Create{$name}.svg' => ['Copy', 'OverlayCreateSymbol', 'GifToSvg'],
+            '/images/library/{$name}/Create{$name}.svg' => ['OverlayCreateSymbol', 'GifToSvg'],
             '/images/library/{$name}/icon_{$name}_32.gif' => ['Copy'],
             '/images/library/{$name}/icon_{$name}_32.svg' => ['Copy', 'GifToSvg'],
             '/images/library/{$name}/icon_{uc$name}.gif' => ['Copy'],
@@ -93,6 +98,14 @@ class AddIconCommand extends Command
             '/images/library/{$name}/sidebar/modules/{$name}.svg' => ['Copy', 'ResizeTo20x20', 'GifToSvg'],
             '/images/library/{$name}/sub_panel/{$name}.svg' => ['Copy', 'GifToSvg'],
             '/images/library/{$name}/sub_panel/modules/{$name}.svg' => ['Copy', 'GifToSvg'],
+        ];
+
+        $this->directories = [
+            '/images/library/{$name}',
+            '/images/library/{$name}/sidebar',
+            '/images/library/{$name}/sidebar/modules',
+            '/images/library/{$name}/sub_panel',
+            '/images/library/{$name}/sub_panel/modules',
         ];
 
         return $this;
@@ -130,6 +143,8 @@ class AddIconCommand extends Command
             return false;
         }
 
+        $this->createDirectories();
+
         try {
             $this->performConversions();
         } catch (\Exception $e) {
@@ -145,10 +160,9 @@ class AddIconCommand extends Command
      */
     private function performConversions() : void
     {
-        $path = $this->convertInputImageToGif();
         foreach ($this->conversions as $targetDir => $steps) {
+            $image = $this->convertInputImageToGif();
 
-            $currentPath = $path;
             $baseDir = Config::getVar('base_dir') . $targetDir;
             $directoryPath = str_replace('{$name}', $this->iconName, $baseDir);
             $directoryPath = str_replace('{uc$name}', ucfirst($this->iconName), $directoryPath);
@@ -156,10 +170,20 @@ class AddIconCommand extends Command
             foreach ($steps as $step) {
 
                 /** @var Conversion $conversion */
-                $conversion = ConversionFactory::getConversion($step, $currentPath, $directoryPath);
-                $currentPath = $conversion->convert();
+                $conversion = ConversionFactory::getConversion($step);
+                $image = $conversion->convert($image);
             }
-            $this->output->writeln('Created file: ' . $currentPath);
+
+            $image->writeImage($directoryPath);
+
+            $this->output->writeln('Created file: ' . $directoryPath);
+        }
+    }
+
+    private function createDirectories()
+    {
+        foreach ($this->directories as $directory) {
+            mkdir(Config::getVar('base_dir') . str_replace('{$name}', $this->iconName, $directory));
         }
     }
 
@@ -168,10 +192,13 @@ class AddIconCommand extends Command
      */
     private function convertInputImageToGif()
     {
+        $inputPath = Config::getVar('base_dir') . '/images/input/' . $this->fileName;
+        $file1 = fopen($inputPath, 'a+');
+        $image = new \Imagick();
+        $image->readImageFile($file1);
+
         /** @var Conversion $conversion */
-        $conversion = ConversionFactory::getToGifConversion(
-            Config::getVar('base_dir') . '/images/input/' . $this->fileName
-        );
-        return $conversion->convert();
+        $conversion = ConversionFactory::getToGifConversion($inputPath);
+        return $conversion->convert($image);
     }
 }

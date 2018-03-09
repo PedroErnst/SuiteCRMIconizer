@@ -42,14 +42,10 @@ namespace Iconizer\Conversion;
 
 class GifToSvg extends Conversion
 {
-    public function convert()
+    public function convert(\Imagick $image)
     {
-        $image = new \Imagick();
-
-        $image->readImage($this->origin);
         $image->setImageFormat("svg");
-        $image->writeImage($this->destination);
 
-        return $this->destination;
+        return $image;
     }
 }

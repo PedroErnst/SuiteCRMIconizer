@@ -44,24 +44,18 @@ use Iconizer\Config;
 
 class OverlayCreateSymbol extends Conversion
 {
-    public function convert()
+    public function convert(\Imagick $image)
     {
-        $file1 = fopen($this->origin, 'a+');
         $file2 = fopen(Config::getVar('base_dir') . '/images/addon/create.png', 'a+');
-        if ($file1 && $file2) {
-            $image1 = new \Imagick();
-            $image1->readImageFile($file1);
 
-            $image2 = new \Imagick();
-            $image2->readImageFile($file2);
+        $image2 = new \Imagick();
+        $image2->readImageFile($file2);
 
-            $image1->setImageVirtualPixelMethod(\Imagick::VIRTUALPIXELMETHOD_TRANSPARENT);
-            $image1->setImageArtifact('compose:args', "1,0,-0.5,0.5");
-            $image1->compositeImage($image2, \Imagick::COMPOSITE_MATHEMATICS, 20, 20);
+        $image->setImageVirtualPixelMethod(\Imagick::VIRTUALPIXELMETHOD_TRANSPARENT);
+        $image->setImageArtifact('compose:args', "1,0,-0.5,0.5");
+        $image->compositeImage($image2, \Imagick::COMPOSITE_DSTOUT, 20, 20);
+        $image->compositeImage($image2, \Imagick::COMPOSITE_DSTOVER, 20, 20);
 
-            $image1->writeImage($this->destination);
-        }
-
-        return $this->destination;
+        return $image;
     }
 }

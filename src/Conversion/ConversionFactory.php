@@ -49,23 +49,23 @@ class ConversionFactory
      * @return Conversion
      * @throws \Exception
      */
-    public static function getConversion($name, $origin, $target)
+    public static function getConversion($name)
     {
         switch ($name) {
             case 'Copy':
-                return new Copy($origin, $target);
+                return new Copy();
                 break;
             case 'PngToGif':
-                return new PngToGif($origin, $target);
+                return new PngToGif();
                 break;
             case 'GifToSvg':
-                return new GifToSvg($origin, $target);
+                return new GifToSvg();
                 break;
             case 'ResizeTo20x20':
-                return new ResizeTo20x20($origin, $target);
+                return new ResizeTo20x20();
                 break;
             case 'OverlayCreateSymbol':
-                return new OverlayCreateSymbol($origin, $target);
+                return new OverlayCreateSymbol();
                 break;
             default:
                 throw new \Exception('Conversion not found: ' . $name);
@@ -81,8 +81,8 @@ class ConversionFactory
         $extension = pathinfo($inputFile, PATHINFO_EXTENSION);
         $targetPath = str_replace($extension, 'gif', $inputFile);
         switch ($extension) {
-            case 'png': return new PngToGif($inputFile, $targetPath);
+            case 'png': return new PngToGif();
         }
-        return new Conversion($inputFile, $inputFile);
+        return new Conversion();
     }
 }

@@ -42,7 +42,7 @@ namespace Iconizer\Conversion;
 
 class PngToGif extends Conversion
 {
-    public function convert()
+    public function convert(\Imagick $image)
     {
         $imageObject = imagecreatefrompng($this->origin);
 

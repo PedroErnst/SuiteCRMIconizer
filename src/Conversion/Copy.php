@@ -42,10 +42,5 @@ namespace Iconizer\Conversion;
 
 class Copy extends Conversion
 {
-    public function convert()
-    {
-        $this->fileSystem->copy($this->origin, $this->destination);
 
-        return $this->destination;
-    }
 }
