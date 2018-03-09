@@ -51,10 +51,10 @@ class TurnWhite extends Conversion
      */
     public function convert(\Imagick $image)
     {
-        if ($image->getImageHeight() == 20) {
+        if ($image->getImageHeight() === 20) {
             $file2 = fopen(Config::getVar('base_dir') . '/images/addon/white20x20.png', 'a+');
         }
-        else if ($image->getImageHeight() == 30) {
+        else if ($image->getImageHeight() === 30) {
             $file2 = fopen(Config::getVar('base_dir') . '/images/addon/white30x30.png', 'a+');
         }
         else {
