@@ -76,6 +76,6 @@ class Conversion
      */
     public function convert()
     {
-        return '';
+        return $this->origin;
     }
 }

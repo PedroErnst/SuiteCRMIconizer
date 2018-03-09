@@ -40,49 +40,28 @@
 
 namespace Iconizer\Conversion;
 
-class ConversionFactory
-{
-    /**
-     * @param $name
-     * @param $origin
-     * @param $target
-     * @return Conversion
-     * @throws \Exception
-     */
-    public static function getConversion($name, $origin, $target)
-    {
-        switch ($name) {
-            case 'Copy':
-                return new Copy($origin, $target);
-                break;
-            case 'PngToGif':
-                return new PngToGif($origin, $target);
-                break;
-            case 'GifToSvg':
-                return new GifToSvg($origin, $target);
-                break;
-            case 'ResizeTo20x20':
-                return new ResizeTo20x20($origin, $target);
-                break;
-            case 'OverlayCreateSymbol':
-                return new OverlayCreateSymbol($origin, $target);
-                break;
-            default:
-                throw new \Exception('Conversion not found: ' . $name);
-        }
-    }
+use Iconizer\Config;
 
-    /**
-     * @param string $inputFile
-     * @return Conversion
-     */
-    public static function getToGifConversion($inputFile)
+class OverlayCreateSymbol extends Conversion
+{
+    public function convert()
     {
-        $extension = pathinfo($inputFile, PATHINFO_EXTENSION);
-        $targetPath = str_replace($extension, 'gif', $inputFile);
-        switch ($extension) {
-            case 'png': return new PngToGif($inputFile, $targetPath);
+        $file1 = fopen($this->origin, 'a+');
+        $file2 = fopen(Config::getVar('base_dir') . '/images/addon/create.png', 'a+');
+        if ($file1 && $file2) {
+            $image1 = new \Imagick();
+            $image1->readImageFile($file1);
+
+            $image2 = new \Imagick();
+            $image2->readImageFile($file2);
+
+            $image1->setImageVirtualPixelMethod(\Imagick::VIRTUALPIXELMETHOD_TRANSPARENT);
+            $image1->setImageArtifact('compose:args', "1,0,-0.5,0.5");
+            $image1->compositeImage($image2, \Imagick::COMPOSITE_MATHEMATICS, 20, 20);
+
+            $image1->writeImage($this->destination);
         }
-        return new Conversion($inputFile, $inputFile);
+
+        return $this->destination;
     }
 }

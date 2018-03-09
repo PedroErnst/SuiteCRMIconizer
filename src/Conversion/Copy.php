@@ -42,16 +42,6 @@ namespace Iconizer\Conversion;
 
 class Copy extends Conversion
 {
-    /**
-     * Copy constructor.
-     * @param string $origin
-     * @param string $destination
-     */
-    public function __construct($origin, $destination)
-    {
-        parent::__construct($origin, $destination);
-    }
-
     public function convert()
     {
         $this->fileSystem->copy($this->origin, $this->destination);

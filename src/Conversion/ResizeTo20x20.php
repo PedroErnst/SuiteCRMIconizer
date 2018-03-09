@@ -40,49 +40,19 @@
 
 namespace Iconizer\Conversion;
 
-class ConversionFactory
+class ResizeTo20x20 extends Conversion
 {
-    /**
-     * @param $name
-     * @param $origin
-     * @param $target
-     * @return Conversion
-     * @throws \Exception
-     */
-    public static function getConversion($name, $origin, $target)
+    public function convert()
     {
-        switch ($name) {
-            case 'Copy':
-                return new Copy($origin, $target);
-                break;
-            case 'PngToGif':
-                return new PngToGif($origin, $target);
-                break;
-            case 'GifToSvg':
-                return new GifToSvg($origin, $target);
-                break;
-            case 'ResizeTo20x20':
-                return new ResizeTo20x20($origin, $target);
-                break;
-            case 'OverlayCreateSymbol':
-                return new OverlayCreateSymbol($origin, $target);
-                break;
-            default:
-                throw new \Exception('Conversion not found: ' . $name);
-        }
-    }
+        $file = fopen($this->origin, 'a+');
+        if ($file) {
+            $image = new \Imagick();
 
-    /**
-     * @param string $inputFile
-     * @return Conversion
-     */
-    public static function getToGifConversion($inputFile)
-    {
-        $extension = pathinfo($inputFile, PATHINFO_EXTENSION);
-        $targetPath = str_replace($extension, 'gif', $inputFile);
-        switch ($extension) {
-            case 'png': return new PngToGif($inputFile, $targetPath);
+            $image->readImageFile($file);
+            $image->resizeImage(20, 20, \Imagick::FILTER_CATROM, 0.9);
+            $image->writeImage($this->destination);
         }
-        return new Conversion($inputFile, $inputFile);
+
+        return $this->destination;
     }
 }
