@@ -116,6 +116,7 @@ class FileChecker
     {
         $this->checkFileName();
         $this->checkFileExists();
+        $this->checkFileDimensions();
         $this->checkLibraryFolderIsWritable();
         $this->checkTargetFolderDoesNotExist();
     }
@@ -138,6 +139,28 @@ class FileChecker
 
         if (!$this->fileSystem->exists($this->fullPath)) {
             throw new \Exception("File doesn't exist: " . $this->fullPath);
+        }
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function checkFileDimensions()
+    {
+        $file1 = fopen($this->fullPath, 'a+');
+        $image = new \Imagick();
+        $image->readImageFile($file1);
+
+        if ($image->getImageHeight() !== $image->getImageWidth()) {
+            throw new \Exception("Image width should be equal to height!");
+        }
+
+        if ($image->getImageHeight() > 30) {
+            throw new \Exception("Image should be no bigger than 30x30!");
+        }
+
+        if ($image->getImageHeight() < 28) {
+            throw new \Exception("Image should be no smaller than 28x28!");
         }
     }
 
