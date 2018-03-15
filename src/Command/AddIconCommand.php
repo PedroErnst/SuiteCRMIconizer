@@ -55,6 +55,11 @@ class AddIconCommand extends Command
     private $successfulImport = [];
 
     /**
+     * @var array
+     */
+    private $failedImport = [];
+
+    /**
      * AddIconCommand constructor.
      * @param null $name
      */
@@ -136,6 +141,13 @@ class AddIconCommand extends Command
                 $this->output->writeln($name);
             }
         }
+
+        if (count($this->failedImport)) {
+            $this->output->writeln('----- Failed Imports: -----');
+            foreach ($this->failedImport as $name) {
+                $this->output->writeln($name);
+            }
+        }
     }
 
     /**
@@ -151,6 +163,9 @@ class AddIconCommand extends Command
         if ($this->tryToConvert()) {
             $this->output->writeln($this->iconName . ' added successfully!');
             $this->successfulImport[] = $name;
+        }
+        else {
+            $this->failedImport[] = $name;
         }
     }
 
