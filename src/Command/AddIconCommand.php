@@ -144,8 +144,8 @@ class AddIconCommand extends Command
 
         if (count($this->failedImport)) {
             $this->output->writeln('----- Failed Imports: -----');
-            foreach ($this->failedImport as $name) {
-                $this->output->writeln($name);
+            foreach ($this->failedImport as $name => $error) {
+                $this->output->writeln($name . ': ' . $error);
             }
         }
     }
@@ -164,9 +164,6 @@ class AddIconCommand extends Command
             $this->output->writeln($this->iconName . ' added successfully!');
             $this->successfulImport[] = $name;
         }
-        else {
-            $this->failedImport[] = $name;
-        }
     }
 
     /**
@@ -178,6 +175,7 @@ class AddIconCommand extends Command
             $this->fileChecker->check($this->fileName, $this->force);
         } catch (\Exception $e) {
             $this->output->writeln('--- ERROR: ' . $e->getMessage());
+            $this->failedImport[$this->fileName] = $e->getMessage();
             return false;
         }
 
@@ -187,6 +185,7 @@ class AddIconCommand extends Command
             $this->performConversions();
         } catch (\Exception $e) {
             $this->output->writeln($e->getMessage());
+            $this->failedImport[$this->fileName] = $e->getMessage();
             return false;
         }
 
