@@ -57,6 +57,9 @@ class TurnWhite extends Conversion
         else if ($image->getImageHeight() === 30) {
             $file2 = fopen(Config::getVar('base_dir') . '/images/addon/white30x30.png', 'a+');
         }
+        else if ($image->getImageHeight() === 28) {
+            $file2 = fopen(Config::getVar('base_dir') . '/images/addon/white28x28.png', 'a+');
+        }
         else {
             throw new \Exception('Invalid image size for converting to white');
         }
