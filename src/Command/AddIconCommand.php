@@ -50,6 +50,11 @@ class AddIconCommand extends Command
     private $output;
 
     /**
+     * @var array
+     */
+    private $successfulImport = [];
+
+    /**
      * AddIconCommand constructor.
      * @param null $name
      */
@@ -67,7 +72,7 @@ class AddIconCommand extends Command
         $this
             ->setName('add-icon')
             ->setDescription('Adds a new icon to the library.')
-            ->addArgument('name', InputArgument::REQUIRED, 'The name of the icon and file.')
+            ->addArgument('name', InputArgument::IS_ARRAY, 'The name of the icon and file.')
             ->addOption(
                 'force',
                 'f',
@@ -118,20 +123,38 @@ class AddIconCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->fileName = $input->getArgument('name');
-        $this->iconName = pathinfo($this->fileName, PATHINFO_FILENAME);
         $this->force = $input->getOption('force');
         $this->output = $output;
+
+        foreach ($input->getArgument('name') as $name) {
+            $this->processInputFileName($name);
+        }
+
+        if (count($this->successfulImport)) {
+            $this->output->writeln('----- Successful Imports: -----');
+            foreach ($this->successfulImport as $name) {
+                $this->output->writeln($name);
+            }
+        }
+    }
+
+    /**
+     * @param $name
+     */
+    private function processInputFileName($name): void
+    {
+        $this->fileName = $name;
+        $this->iconName = pathinfo($this->fileName, PATHINFO_FILENAME);
 
         $this->output->writeln('Attempting to add an icon: ');
 
         if ($this->tryToConvert()) {
             $this->output->writeln($this->iconName . ' added successfully!');
+            $this->successfulImport[] = $name;
         }
     }
 
     /**
-     * @param OutputInterface $output
      * @return bool
      */
     private function tryToConvert()
@@ -156,9 +179,22 @@ class AddIconCommand extends Command
     }
 
     /**
+     *
+     */
+    private function createDirectories()
+    {
+        foreach ($this->directories as $directory) {
+            $fullPath = Config::getVar('base_dir') . str_replace('{$name}', $this->iconName, $directory);
+            if (!is_dir($fullPath)) {
+                mkdir($fullPath);
+            }
+        }
+    }
+
+    /**
      * @throws \Exception
      */
-    private function performConversions() : void
+    private function performConversions(): void
     {
         foreach ($this->conversions as $targetDir => $steps) {
             $image = $this->convertInputImageToGif();
@@ -178,6 +214,21 @@ class AddIconCommand extends Command
 
             $this->output->writeln('Created file: ' . $directoryPath);
         }
+    }
+
+    /**
+     *
+     */
+    private function convertInputImageToGif()
+    {
+        $inputPath = Config::getVar('base_dir') . '/images/input/' . $this->fileName;
+        $file1 = fopen($inputPath, 'a+');
+        $image = new \Imagick();
+        $image->readImageFile($file1);
+
+        /** @var Conversion $conversion */
+        $conversion = ConversionFactory::getToGifConversion($inputPath);
+        return $conversion->convert($image);
     }
 
     /**
@@ -208,33 +259,5 @@ class AddIconCommand extends Command
         $fileContents = str_replace($brokenHeader, $fixedHeader, $fileContents);
 
         file_put_contents($path, $fileContents);
-    }
-
-    /**
-     *
-     */
-    private function createDirectories()
-    {
-        foreach ($this->directories as $directory) {
-            $fullPath = Config::getVar('base_dir') . str_replace('{$name}', $this->iconName, $directory);
-            if (!is_dir($fullPath)) {
-                mkdir($fullPath);
-            }
-        }
-    }
-
-    /**
-     *
-     */
-    private function convertInputImageToGif()
-    {
-        $inputPath = Config::getVar('base_dir') . '/images/input/' . $this->fileName;
-        $file1 = fopen($inputPath, 'a+');
-        $image = new \Imagick();
-        $image->readImageFile($file1);
-
-        /** @var Conversion $conversion */
-        $conversion = ConversionFactory::getToGifConversion($inputPath);
-        return $conversion->convert($image);
     }
 }

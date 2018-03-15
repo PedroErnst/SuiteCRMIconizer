@@ -35,9 +35,10 @@ on your system.
 First place the icon to be added to the library in the images/input folder.
 It should be 30x30 pixels and either .gif or .png format.
 
-`php iconizer add-icon <Icon Name>`
+`php iconizer add-icon <Icon Name 1> <Icon Name 2>`
 
-- Icon Name: The name of the file you intend to add, including the extension.
+- Icon Name: The name of the file you intend to add, including the extension. You
+can pass multiple files separated by spaces.
 
 Once the import has concluded successfully, you may do a pull request to make your
 icon available through this repository.
